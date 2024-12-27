@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twitter Trend Scraper</title>
+  </head>
+  <body>
+    <h1>Twitter Trending Topics</h1>
+    <button id="scrapeButton">Click here to run the script</button>
+    <div id="results"></div>
+
+    <script>
+      document
+        .getElementById("scrapeButton")
+        .addEventListener("click", async () => {
+          const resultsDiv = document.getElementById("results");
+          resultsDiv.innerHTML = "Loading...";
+          try {
+            const response = await fetch("/api/scrape", { method: "POST" });
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data && data.success) {
+              resultsDiv.innerHTML = `
+                        <p>These are the most happening topics as on ${new Date(
+                          data.trendData.dateTime
+                        ).toLocaleString()}</p>
+                        <ul>
+                            <li>${data.trendData.trend1}</li>
+                            <li>${data.trendData.trend2}</li>
+                            <li>${data.trendData.trend3}</li>
+                            <li>${data.trendData.trend4}</li>
+                        </ul>
+                        <p>The IP address used for this query was ${
+                          data.trendData.ipAddress
+                        }</p>
+                        <p>Here's a JSON extract of this record from the MongoDB:</p>
+                        <pre>${JSON.stringify(data.trendData, null, 2)}</pre>
+                        <button onclick="window.location.reload()">Click here to run the query again.</button>
+                    `;
+            } else {
+              resultsDiv.innerHTML = `Error: ${
+                data.message || "Failed to fetch data"
+              }`;
+            }
+          } catch (error) {
+            console.error("Error during request:", error);
+            resultsDiv.innerHTML = "An error occurred while fetching data.";
+          }
+        });
+    </script>
+  </body>
+</html>
